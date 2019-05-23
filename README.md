@@ -1,5 +1,7 @@
 # Bencoding
 
+[![CircleCI](https://circleci.com/gh/wilkmaia/bencoding/tree/master.svg?style=svg)](https://circleci.com/gh/wilkmaia/bencoding/tree/master)
+
 _Bencoding_ is a [bencoding](https://wiki.theory.org/index.php/BitTorrentSpecification#Bencoding) library written in Elixir as part of developing an elixir BitTorrent.
 
 This is a learning project and should not be used for anyone that expects quality in downloading or serving content over the BitTorrent protocol.
