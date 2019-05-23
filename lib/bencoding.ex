@@ -1,18 +1,15 @@
 defmodule Bencoding do
   @moduledoc """
-  Documentation for Bencoding.
+  Bencoding encoder/decoder module
   """
 
-  @doc """
-  Hello world.
+  def decode(string) do
+    Bencoding.Decoder.decode(string)
+  end
 
-  ## Examples
+  def decode!(string) do
+    { :ok, result } = Bencoding.Decoder.decode(string)
 
-      iex> Bencoding.hello()
-      :world
-
-  """
-  def hello do
-    :world
+    result
   end
 end
