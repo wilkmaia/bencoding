@@ -4,11 +4,15 @@ defmodule Bencoding.Decoder do
   """
 
   def decode(string) do
-    { :ok, result, _ } = string
-    |> _get_bencode
-    |> _decode
+    try do
+      { :ok, result, _ } = string
+      |> _get_bencode
+      |> _decode
 
-    { :ok, result }
+      { :ok, result }
+    catch
+      :error -> { :error, ~s/Malformed bencoding string "#{string}"/ }
+    end
   end
 
   defp _get_bencode(<< "i", data :: binary >>), do: { :integer, data }
@@ -21,12 +25,13 @@ defmodule Bencoding.Decoder do
   defp _decode({ :dictionary, data }), do: _do_decode_dictionary(data, %{})
   defp _decode({ :string, data }), do: _do_decode_string(data)
 
-  defp _do_decode_integer(data = << "-0", _ :: binary >>), do: { :error, ~s/Malformed bencoding integer #{data}/ }
+  defp _do_decode_integer(<< "-0", _ :: binary >>), do: throw(:error)
+  defp _do_decode_integer(<< "0", next :: binary-1, _ :: binary >>) when next != "e", do: throw(:error)
   defp _do_decode_integer(data) when is_binary(data) do
     { number, rest } = data
     |> String.graphemes
     |> Enum.reduce_while({ [], data }, fn
-      "e", { acc, << _ :: binary-1, res :: binary >> } -> { :halt, { acc, res } }
+      "e", { acc, << _ :: binary-1, res :: binary >> } -> { :halt, { Enum.reverse(acc), res } }
       val, { acc, << _ :: binary-1, res :: binary >> } -> { :cont, { [val | acc], res } }
       end)
 
@@ -37,6 +42,7 @@ defmodule Bencoding.Decoder do
     { :ok, number, rest }
   end
 
+  defp _do_decode_list("", _), do: throw(:error)
   defp _do_decode_list(<< "e", rest :: binary >>, contents), do: { :ok, Enum.reverse(contents), rest }
   defp _do_decode_list(data, contents) when is_binary(data) do
     { :ok, element, rest } = data
@@ -46,6 +52,7 @@ defmodule Bencoding.Decoder do
     _do_decode_list(rest, [element | contents])
   end
 
+  defp _do_decode_dictionary("", _), do: throw(:error)
   defp _do_decode_dictionary(<< "e", rest :: binary >>, contents), do: { :ok, contents, rest }
   defp _do_decode_dictionary(data, contents) do
     { :ok, key, rest } = { :string, data }
@@ -59,13 +66,17 @@ defmodule Bencoding.Decoder do
   end
 
   defp _do_decode_string(data) when is_binary(data) do
-    [len, content] = String.split(data, ":", parts: 2)
-    len = String.to_integer(len)
+    try do
+      [len, content] = String.split(data, ":", parts: 2)
+      len = String.to_integer(len)
 
-    if String.length(content) < len do
-      { :error, ~s/Malformed bencoding string #{data}/ }
-    else
-      { :ok, String.slice(content, 0, len), String.slice(content, len, String.length(content)) }
+      if String.length(content) < len do
+        throw(:error)
+      else
+        { :ok, String.slice(content, 0, len), String.slice(content, len, String.length(content)) }
+      end
+    rescue
+      ArgumentError -> throw(:error)
     end
   end
 end
