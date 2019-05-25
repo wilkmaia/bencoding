@@ -14,4 +14,14 @@ defmodule Bencoding do
 
     result
   end
+
+  @spec encode(binary() | [binary() | integer() | map()] | integer() | map()) :: {:error, binary()} | {:ok, binary()}
+  def encode(data), do: Bencoding.Encoder.encode(data)
+
+  @spec encode!(binary() | [binary() | integer() | map()] | integer() | map()) :: binary()
+  def encode!(data) do
+    { :ok, result } = Bencoding.Encoder.encode(data)
+
+    result
+  end
 end
