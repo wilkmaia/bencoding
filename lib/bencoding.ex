@@ -3,11 +3,13 @@ defmodule Bencoding do
   Bencoding encoder/decoder module
   """
 
-  def decode(string) do
+  @spec decode(binary()) :: {:error, binary()} | {:ok, any()}
+  def decode(string) when is_binary(string) do
     Bencoding.Decoder.decode(string)
   end
 
-  def decode!(string) do
+  @spec decode!(binary()) :: any()
+  def decode!(string) when is_binary(string) do
     { :ok, result } = Bencoding.Decoder.decode(string)
 
     result
