@@ -69,15 +69,12 @@ defmodule Bencoding.Decoder do
   defp _do_decode_string(data) when is_binary(data) do
     try do
       [len, content] = String.split(data, ":", parts: 2)
-      len = String.to_integer(len)
+      { len, "" } = Integer.parse(len)
 
-      if String.length(content) < len do
-        throw(:error)
-      else
-        { :ok, String.slice(content, 0, len), String.slice(content, len, String.length(content)) }
-      end
+      << string :: bytes-size(len), rest :: binary >> = content
+      { :ok, string, rest }
     rescue
-      ArgumentError -> throw(:error)
+      MatchError -> throw(:error)
     end
   end
 end
