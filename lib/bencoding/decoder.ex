@@ -19,7 +19,8 @@ defmodule Bencoding.Decoder do
   defp _get_bencode(<< "i", data :: binary >>), do: { :integer, data }
   defp _get_bencode(<< "l", data :: binary >>), do: { :list, data }
   defp _get_bencode(<< "d", data :: binary >>), do: { :dictionary, data }
-  defp _get_bencode(<< data :: binary >>), do: { :string, data }
+  defp _get_bencode(data = << _ :: integer-8, _ :: binary >>), do: { :string, data }
+  defp _get_bencode(_), do: throw(:error)
 
   defp _decode({ :integer, data }), do: _do_decode_integer(data)
   defp _decode({ :list, data }), do: _do_decode_list(data, [])
@@ -32,8 +33,10 @@ defmodule Bencoding.Decoder do
     { number, rest } = data
     |> String.graphemes
     |> Enum.reduce_while({ [], data }, fn
+      "e", { [], _ } -> throw(:error)
       "e", { acc, << _ :: binary-1, res :: binary >> } -> { :halt, { Enum.reverse(acc), res } }
-      val, { acc, << _ :: binary-1, res :: binary >> } -> { :cont, { [val | acc], res } }
+      val, { acc, << _ :: binary-1, res :: binary >> } when (val >= "0" and val <= "9") or val == "-" -> { :cont, { [val | acc], res } }
+      _, _ -> throw(:error)
       end)
 
     number = number

@@ -36,6 +36,8 @@ defmodule BencodingTest do
 
     test "with invalid values" do
       assert Bencoding.decode("10:invalid") === { :error, "Malformed bencoding string \"10:invalid\"" }
+      assert Bencoding.decode("spam") === { :error, "Malformed bencoding string \"spam\"" }
+      assert Bencoding.decode(":spam") === { :error, "Malformed bencoding string \":spam\"" }
     end
   end
 
@@ -50,6 +52,9 @@ defmodule BencodingTest do
     test "with invalid values" do
       assert Bencoding.decode("i00e") === { :error, "Malformed bencoding string \"i00e\"" }
       assert Bencoding.decode("i-0e") === { :error, "Malformed bencoding string \"i-0e\"" }
+      assert Bencoding.decode("i12xe") === { :error, "Malformed bencoding string \"i12xe\"" }
+      assert Bencoding.decode("ii12e") === { :error, "Malformed bencoding string \"ii12e\"" }
+      assert Bencoding.decode("ie") === { :error, "Malformed bencoding string \"ie\"" }
     end
   end
 
